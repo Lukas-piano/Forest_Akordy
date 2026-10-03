@@ -85,6 +85,22 @@ h1{margin:2px 0 12px;color:#fff3da;font-size:21px;font-weight:700}
 .invs .btn.sel{background:var(--dark);border-color:var(--dark);color:#fff}
 .invs .btn:disabled{opacity:.4;cursor:not-allowed}
 #lowest{font-size:11px;margin-top:8px}
+/* Jedna pastelowa paleta dla każdego składnika akordu. */
+[data-id="pryma"]{--tone:#e6a0a3;--tone-soft:#f8e3e4;--tone-border:#ca8589}
+[data-id="tercja"]{--tone:#91b9e0;--tone-soft:#e3eef9;--tone-border:#719bc4}
+[data-id="kwinta"]{--tone:#9cc8a4;--tone-soft:#e6f2e8;--tone-border:#7ba584}
+[data-id="seksta"]{--tone:#e5b38e;--tone-soft:#faecdf;--tone-border:#c49370}
+[data-id="septyma"]{--tone:#bea5dc;--tone-soft:#efe7f8;--tone-border:#9e83bd}
+[data-id="nona"]{--tone:#8ec9c5;--tone-soft:#e1f2f0;--tone-border:#6aa7a3}
+.cell[data-id],.panel[data-id],.card[data-id="pryma"]{background:var(--tone-soft);border-color:var(--tone-border)}
+.cell[data-id].bass{border:2px solid var(--tone-border);padding:5px 1px}
+.cell[data-id].sound{background:var(--tone);border-color:var(--tone-border);box-shadow:0 0 0 2px var(--tone-soft)}
+.dot[data-id]{background:var(--tone);border-color:var(--tone-border);box-shadow:0 1px 4px rgba(0,0,0,.24)}
+.panel[data-id] .onoff.on i{background:radial-gradient(circle at 35% 30%,#fff,var(--tone) 55%,var(--tone-border));box-shadow:0 0 7px var(--tone)}
+.card[data-id="pryma"] .btn{background:#fff6f6;border-color:var(--tone-border)}
+.card[data-id="pryma"] .btn.sel{background:var(--tone);color:var(--ink)}
+#primaBtn{padding:4px 7px;border-radius:5px;background:var(--tone-soft);border:1px solid var(--tone-border)}
+.legend i{background:#909aa2}
 @media (max-width:520px){
   .panels{gap:5px}.panel{padding:8px 2px}.panel .val{font-size:10.5px}
   .sw{width:38px}.onoff{width:48px}
@@ -106,7 +122,7 @@ h1{margin:2px 0 12px;color:#fff3da;font-size:21px;font-weight:700}
       </button>
     </div>
     <div class="meta">
-      <button class="tag" id="primaBtn" title="Kliknij, aby dodać lub pominąć prymę"></button>
+      <button class="tag" data-id="pryma" id="primaBtn" title="Kliknij, aby dodać lub pominąć prymę"></button>
       <span id="invLabel"></span>
     </div>
     <div class="cells" id="cells"></div>
@@ -114,7 +130,7 @@ h1{margin:2px 0 12px;color:#fff3da;font-size:21px;font-weight:700}
     <div class="legend"><span><i></i><span id="kind"></span></span><span>C3–F5</span></div>
   </section>
 
-  <section class="card" aria-label="Pryma">
+  <section class="card" data-id="pryma" aria-label="Pryma">
     <div class="title">Pryma</div>
     <div class="roots" id="roots"></div>
     <div class="acc">
@@ -423,7 +439,7 @@ function update(changed){
   piano.querySelectorAll('.dot').forEach(function(x){ x.remove(); });
   c.notes.forEach(function(n){
     var k = keyEls[n.midi];
-    if(k){ var dot = document.createElement('div'); dot.className = 'dot'; k.appendChild(dot); }
+    if(k){ var dot = document.createElement('div'); dot.className = 'dot'; dot.dataset.id = n.id; k.appendChild(dot); }
   });
   document.getElementById('kind').textContent = KINDS[Math.max(0, c.notes.length - 1)];
 
