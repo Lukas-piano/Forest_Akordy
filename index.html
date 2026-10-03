@@ -9,7 +9,7 @@
 <meta property="og:type" content="website">
 <meta property="og:locale" content="pl_PL">
 <meta property="og:title" content="Akordy – budowa tercjowa">
-<meta property="og:description" content="Poznaj budowę akordów, sprawdzaj ich dźwięki i przewroty na klawiaturze oraz słuchaj ich brzmienia. Interaktywna aplikacja Forest Akordy.">
+<meta property="og:description" content="Poznaj budowę akordów, sprawdzaj ich dźwięki i przewroty na klawiaturze lub gryfie gitary oraz słuchaj ich brzmienia. Interaktywna aplikacja Forest Akordy.">
 <meta property="og:url" content="https://lukas-piano.github.io/Forest_Akordy/">
 <meta property="og:image" content="https://lukas-piano.github.io/Forest_Akordy/og-image.jpg">
 <meta property="og:image:type" content="image/jpeg">
@@ -46,16 +46,7 @@ h1{margin:2px 0 12px;color:#fff3da;font-size:21px;font-weight:700}
 .cell.bass{border-color:var(--ink)}
 .cell.sound{background:#cfe5ff;border-color:var(--accent)}
 .cells .empty{flex:1;text-align:center;opacity:.6;font-size:13px;padding:14px 0}
-.piano{position:relative;height:132px;border:3px solid #3b4652;border-radius:10px;background:#3b4652;overflow:hidden;user-select:none;-webkit-user-select:none;touch-action:manipulation}
-.key{position:absolute;cursor:pointer}
-.key.w{top:0;bottom:0;background:linear-gradient(#fffdf6,#f6edd8);border-right:1px solid #cdbf9f}
-.key.b{top:0;height:62%;background:linear-gradient(#2c2c2c,#111);border-radius:0 0 4px 4px;z-index:2}
-.key.w.press{background:#e9dcb9}
-.key.b.press{background:#444}
-.key .lbl{position:absolute;left:4px;bottom:4px;font-size:8px;opacity:.55}
 .dot{position:absolute;left:50%;width:62%;aspect-ratio:1;transform:translateX(-50%);border-radius:50%;display:grid;place-items:center;font-size:clamp(9px,1.5vw,12px);font-weight:800;line-height:1;color:#27313c;background:var(--accent);border:1px solid #cfe5ff;box-shadow:0 1px 4px rgba(0,0,0,.24);pointer-events:none}
-.key.w .dot{bottom:22%}
-.key.b .dot{bottom:10%;width:100%}
 .legend{display:flex;justify-content:space-between;font-size:11px;margin-top:6px}
 .legend i{display:inline-block;width:7px;height:7px;border-radius:50%;background:var(--accent);margin-right:5px}
 .title{text-align:center;font-size:12px;font-weight:700;margin-bottom:8px;letter-spacing:.03em}
@@ -107,8 +98,38 @@ h1{margin:2px 0 12px;color:#fff3da;font-size:21px;font-weight:700}
   .panels{gap:5px}.panel{padding:8px 2px}.panel .val{font-size:10.5px}
   .sw{width:38px}.onoff{width:48px}
   .cell b{font-size:16px}.roots,.cells{gap:5px}
-  .piano{height:110px}
 }
+/* Gryf: cienka struna e u góry, basowa E na dole. */
+.guitar{border:3px solid #3b4652;border-radius:10px;overflow:hidden;background:#6b4935;user-select:none;touch-action:manipulation}
+.fret-row{display:grid;grid-template-columns:24px repeat(13,minmax(0,1fr));height:31px}
+.fret-row.header{height:24px;background:#404954;color:#f7f4ee;font-size:10px;text-align:center;align-items:center}
+.string-label{display:grid;place-items:center;background:#404954;color:#f7f4ee;font-size:11px;font-weight:700}
+.fret{position:relative;border:0;border-right:2px solid #b9b7b0;padding:0;background:transparent;color:inherit;cursor:pointer;min-width:0;display:grid;place-items:center}
+.fret::before{content:'';position:absolute;left:0;right:0;top:50%;height:var(--string-width);background:#d8d3c9;box-shadow:0 1px 1px #36291f;pointer-events:none}
+.fret.open{background:#ece4d4;border-right:3px solid #ece4d4}
+.fret-row:nth-child(3n) .fret:not(.open){background:rgba(0,0,0,.04)}
+.fret .dot{position:relative;left:auto;transform:none;width:min(23px,100%);aspect-ratio:1;font-size:11px;z-index:1}
+.fret:focus-visible{outline:2px solid #fff;outline-offset:-3px;z-index:2}
+.fret.muted::after{content:'×';position:relative;z-index:1;color:#424954;font-weight:700;font-size:15px;background:#ece4d4}
+.guitar-note{font-size:11px;color:#4d5560;margin-top:7px;line-height:1.4}
+@media(max-width:520px){.fret-row{grid-template-columns:19px repeat(13,minmax(0,1fr));height:29px}.fret .dot{font-size:9px}.fret-row.header{font-size:8px}}
+[hidden]{display:none!important}
+.chord-head{display:grid;grid-template-columns:82px minmax(0,1fr) 82px;align-items:center;gap:6px;margin-bottom:8px}
+#chordName{text-align:center;margin:0;min-height:34px;overflow-wrap:anywhere}
+.chord-head .play{justify-self:end}
+.instrument-choice{display:flex;gap:4px}
+.instrument-button{width:38px;height:38px;display:grid;place-items:center;background:#eceff1;border:1px solid var(--slate-b);border-radius:7px;color:var(--dark);padding:5px;cursor:pointer}
+.instrument-button svg{width:27px;height:23px}
+.instrument-button[aria-pressed="true"]{background:var(--dark);color:#fff;border-color:var(--dark)}
+.instrument-button:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.piano{position:relative;height:132px;border:3px solid #3b4652;border-radius:10px;background:#3b4652;overflow:hidden;user-select:none;touch-action:manipulation}
+.key{position:absolute;cursor:pointer}
+.key.w{top:0;bottom:0;background:linear-gradient(#fffdf6,#f6edd8);border-right:1px solid #cdbf9f}
+.key.b{top:0;height:62%;background:linear-gradient(#2c2c2c,#111);border-radius:0 0 4px 4px;z-index:2}
+.key.w.press{background:#e9dcb9}.key.b.press{background:#444}
+.key .lbl{position:absolute;left:4px;bottom:4px;font-size:8px;opacity:.55}
+.key.w .dot{bottom:22%}.key.b .dot{bottom:10%;width:100%}
+@media(max-width:520px){.piano{height:110px}.chord-head{grid-template-columns:72px minmax(0,1fr) 72px;gap:3px}#chordName{font-size:26px}.instrument-button{width:34px;height:36px;padding:4px}.instrument-button svg{width:24px}}
 </style>
 </head>
 <body>
@@ -118,6 +139,14 @@ h1{margin:2px 0 12px;color:#fff3da;font-size:21px;font-weight:700}
 
   <section class="card" aria-label="Akord">
     <div class="chord-head">
+      <div class="instrument-choice" role="group" aria-label="Wybór instrumentu">
+        <button type="button" id="pianoView" class="instrument-button" title="Klawiatura" aria-label="Pokaż klawiaturę" aria-pressed="true">
+          <svg viewBox="0 0 32 24" aria-hidden="true"><rect x="2" y="3" width="28" height="18" rx="2" fill="currentColor"/><path d="M9 4v16M16 4v16M23 4v16" stroke="var(--slate)" stroke-width="1.5"/><path d="M8 4v9M15 4v9M22 4v9" stroke="var(--dark)" stroke-width="3"/></svg>
+        </button>
+        <button type="button" id="guitarView" class="instrument-button" title="Gryf gitary" aria-label="Pokaż gryf gitary" aria-pressed="false">
+          <svg viewBox="0 0 32 24" aria-hidden="true"><rect x="2" y="4" width="28" height="16" rx="2" fill="none" stroke="currentColor" stroke-width="2"/><path d="M3 8h26M3 12h26M3 16h26M10 5v14M18 5v14M26 5v14" stroke="currentColor" stroke-width="1"/><circle cx="14" cy="12" r="2.5" fill="currentColor"/></svg>
+        </button>
+      </div>
       <div id="chordName" aria-live="polite"></div>
       <button class="play" id="playBtn" title="Odtwórz akord (arpeggio, potem razem)" aria-label="Odtwórz akord">
         <svg viewBox="0 0 24 24"><path d="M7 4.5v15l13-7.5z"/></svg>
@@ -129,7 +158,9 @@ h1{margin:2px 0 12px;color:#fff3da;font-size:21px;font-weight:700}
     </div>
     <div class="cells" id="cells"></div>
     <div class="piano" id="piano" aria-label="Klawiatura C3–F5"></div>
-    <div class="legend"><span><i></i><span id="kind"></span></span><span>C3–F5</span></div>
+    <div class="guitar" id="guitar" hidden aria-label="Gryf gitary, sześć strun, progi od 0 do 12"></div>
+    <div class="guitar-note" id="guitarNote" hidden></div>
+    <div class="legend"><span><i></i><span id="kind"></span></span><span id="instrumentRange">C3–F5</span></div>
   </section>
 
   <section class="card" data-id="pryma" aria-label="Pryma">
@@ -287,46 +318,116 @@ function chordSymbol(c){
   return html;
 }
 
-/* ---------- klawiatura ---------- */
-var piano = document.getElementById('piano');
-var keyEls = {};
+/* ---------- wybór instrumentu i klawiatura ---------- */
+var instrument = 'piano';
+var piano = document.getElementById('piano'), keyEls = {};
 (function(){
-  function isBlack(m){ return [1,3,6,8,10].indexOf(m % 12) >= 0; }
-  var whites = 0, m;
-  for(m = LOW; m <= HIGH; m++) if(!isBlack(m)) whites++;
-  var w = 100 / whites, wi = 0, blacks = [];
-  for(m = LOW; m <= HIGH; m++){
-    var el = document.createElement('div');
-    el.dataset.midi = m;
-    el.title = SHARP_NAMES[m % 12] + (Math.floor(m / 12) - 1);
+  function isBlack(m){return [1,3,6,8,10].indexOf(m%12)>=0;}
+  var whites=0;for(var m=LOW;m<=HIGH;m++)if(!isBlack(m))whites++;
+  var w=100/whites,wi=0,blacks=[];
+  for(var m=LOW;m<=HIGH;m++){
+    var el=document.createElement('div');el.dataset.midi=m;el.title=SHARP_NAMES[m%12]+(Math.floor(m/12)-1);
     if(!isBlack(m)){
-      el.className = 'key w';
-      el.style.left = (wi * w) + '%';
-      el.style.width = w + '%';
-      if(m % 12 === 0){
-        var l = document.createElement('span');
-        l.className = 'lbl'; l.textContent = 'C' + (Math.floor(m / 12) - 1);
-        el.appendChild(l);
-      }
-      piano.appendChild(el);
-      wi++;
-    }else{
-      el.className = 'key b';
-      el.style.width = (w * 0.62) + '%';
-      el.style.left = (wi * w - w * 0.31) + '%';
-      blacks.push(el);
-    }
-    keyEls[m] = el;
+      el.className='key w';el.style.left=(wi*w)+'%';el.style.width=w+'%';
+      if(m%12===0){var l=document.createElement('span');l.className='lbl';l.textContent='C'+(Math.floor(m/12)-1);el.appendChild(l);}
+      piano.appendChild(el);wi++;
+    }else{el.className='key b';el.style.width=(w*.62)+'%';el.style.left=(wi*w-w*.31)+'%';blacks.push(el);}
+    keyEls[m]=el;
   }
-  blacks.forEach(function(b){ piano.appendChild(b); });
+  blacks.forEach(function(b){piano.appendChild(b);});
 })();
+function renderPiano(c){
+  piano.querySelectorAll('.dot').forEach(function(dot){dot.remove();});
+  c.notes.forEach(function(n){
+    var key=keyEls[n.midi];if(!key)return;
+    var dot=document.createElement('span');dot.className='dot';dot.dataset.id=n.id;dot.textContent=INTERVAL_NUMBERS[n.id];key.appendChild(dot);
+  });
+}
+piano.addEventListener('pointerdown',function(e){
+  var key=e.target.closest('.key');if(!key)return;
+  key.classList.add('press');setTimeout(function(){key.classList.remove('press');},180);
+  tone(+key.dataset.midi,0,1.2,.25,ctxGet().destination);
+});
+function displayNotes(c){return instrument==='guitar' ? guitarVoicing(c) : c.notes;}
+function selectInstrument(next){
+  instrument=next;
+  timers.forEach(clearTimeout);timers=[];
+  document.querySelectorAll('.cell.sound').forEach(function(cell){cell.classList.remove('sound');});
+  if(bus && ctx)bus.gain.setTargetAtTime(0,ctx.currentTime,.03);
+  update();
+}
+document.getElementById('pianoView').addEventListener('click',function(){selectInstrument('piano');});
+document.getElementById('guitarView').addEventListener('click',function(){selectInstrument('guitar');});
 
-piano.addEventListener('pointerdown', function(e){
-  var k = e.target.closest('.key');
-  if(!k) return;
-  k.classList.add('press');
-  setTimeout(function(){ k.classList.remove('press'); }, 180);
-  tone(+k.dataset.midi, 0, 1.2, 0.25, ctxGet().destination);
+/* ---------- gryf gitary ---------- */
+var GUITAR_STRINGS = [64,59,55,50,45,40];
+var guitar = document.getElementById('guitar');
+function guitarVoicing(c){
+  if(!c.notes.length) return [];
+  var pitches = c.notes.map(function(n){ return n.midi % 12; });
+  var bassPitch = c.bass.midi % 12;
+  var candidates = GUITAR_STRINGS.map(function(open){
+    var list = [];
+    for(var fret=0;fret<=12;fret++){
+      var index = pitches.indexOf((open + fret) % 12);
+      if(index >= 0) list.push({index:index,fret:fret,midi:open+fret});
+    }
+    return list;
+  });
+  var best = null, bestScore = Infinity;
+  function search(string, used, grip){
+    if(grip.length === c.notes.length){
+      var bass = grip.reduce(function(a,b){ return a.midi < b.midi ? a : b; });
+      if(bass.midi % 12 !== bassPitch) return;
+      var pressed = grip.filter(function(n){ return n.fret > 0; }).map(function(n){ return n.fret; });
+      var low = pressed.length ? Math.min.apply(null,pressed) : 0;
+      var high = pressed.length ? Math.max.apply(null,pressed) : 0;
+      var span = high-low;
+      var stringIndices = grip.map(function(n){ return n.string; });
+      var gaps = Math.max.apply(null,stringIndices)-Math.min.apply(null,stringIndices)+1-grip.length;
+      var score = Math.max(0,span-3)*1000 + span*15 + high*3 + gaps*10 + pressed.length;
+      if(score < bestScore){ bestScore=score; best=grip.slice(); }
+      return;
+    }
+    if(string >= 6 || grip.length + 6-string < c.notes.length) return;
+    search(string+1,used,grip);
+    candidates[string].forEach(function(n){
+      if(used & (1<<n.index)) return;
+      var note = {id:c.notes[n.index].id,name:c.notes[n.index].name,midi:n.midi,fret:n.fret,string:string};
+      grip.push(note); search(string+1,used | (1<<n.index),grip); grip.pop();
+    });
+  }
+  search(0,0,[]);
+  return best || [];
+}
+function renderGuitar(c){
+  var grip = guitarVoicing(c);
+  guitar.innerHTML = '';
+  var header = document.createElement('div'); header.className='fret-row header';
+  header.appendChild(document.createElement('span'));
+  for(var f=0;f<=12;f++){var label=document.createElement('span');label.textContent=f;header.appendChild(label);}
+  guitar.appendChild(header);
+  GUITAR_STRINGS.forEach(function(open,index){
+    var row=document.createElement('div');row.className='fret-row';row.style.setProperty('--string-width',(1+index*.3)+'px');
+    var label=document.createElement('span');label.className='string-label';label.textContent=['e','H','G','D','A','E'][index];row.appendChild(label);
+    var selected=grip.filter(function(n){return n.string===index;})[0];
+    for(var fret=0;fret<=12;fret++){
+      var button=document.createElement('button');button.type='button';button.className='fret'+(fret===0?' open':'');button.dataset.midi=open+fret;
+      button.setAttribute('aria-label','Struna '+(index+1)+', '+(fret===0?'pusta':'próg '+fret));
+      if(selected && selected.fret===fret){
+        var dot=document.createElement('span');dot.className='dot';dot.dataset.id=selected.id;dot.textContent=INTERVAL_NUMBERS[selected.id];button.title=selected.name+' – '+selected.id;button.appendChild(dot);
+      }else if(fret===0 && !selected) button.classList.add('muted');
+      row.appendChild(button);
+    }
+    guitar.appendChild(row);
+  });
+  var pressed=grip.filter(function(n){return n.fret>0;}).map(function(n){return n.fret;});
+  var span=pressed.length ? Math.max.apply(null,pressed)-Math.min.apply(null,pressed) : 0;
+  document.getElementById('guitarNote').textContent='0 = pusta struna · × = struna pomijana. Kółka wskazują jeden układ akordu.'+(span>3?' Ten układ wymaga dużego rozstawu palców.':'');
+}
+guitar.addEventListener('click',function(e){
+  var fret=e.target.closest('.fret');if(!fret)return;
+  tone(+fret.dataset.midi,0,1.2,.25,ctxGet().destination);
 });
 
 /* ---------- dźwięk ---------- */
@@ -364,7 +465,7 @@ function playChord(){
   if(bus) bus.gain.setTargetAtTime(0, c.currentTime, 0.03);
   bus = c.createGain(); bus.gain.value = 1; bus.connect(c.destination);
 
-  var sorted = compute().notes.slice().sort(function(a,b){ return a.midi - b.midi; });
+  var sorted = displayNotes(compute()).slice().sort(function(a,b){ return a.midi - b.midi; });
   var n = sorted.length;
   if(!n) return;
   var vol = 0.32 / Math.sqrt(n), step = 0.26;
@@ -438,11 +539,13 @@ function update(changed){
     cells.appendChild(d);
   });
 
-  piano.querySelectorAll('.dot').forEach(function(x){ x.remove(); });
-  c.notes.forEach(function(n){
-    var k = keyEls[n.midi];
-    if(k){ var dot = document.createElement('div'); dot.className = 'dot'; dot.dataset.id = n.id; dot.textContent = INTERVAL_NUMBERS[n.id]; k.appendChild(dot); }
-  });
+  var isGuitar=instrument==='guitar';
+  piano.hidden=isGuitar;guitar.hidden=!isGuitar;
+  document.getElementById('guitarNote').hidden=!isGuitar;
+  document.getElementById('pianoView').setAttribute('aria-pressed',!isGuitar);
+  document.getElementById('guitarView').setAttribute('aria-pressed',isGuitar);
+  document.getElementById('instrumentRange').textContent=isGuitar ? 'Gitara · progi 0–12' : 'C3–F5';
+  if(isGuitar)renderGuitar(c);else renderPiano(c);
   document.getElementById('kind').textContent = KINDS[Math.max(0, c.notes.length - 1)];
 
   rootsEl.querySelectorAll('.btn').forEach(function(b){ b.classList.toggle('sel', +b.dataset.i === st.root); });
@@ -477,7 +580,9 @@ function update(changed){
       invs.appendChild(b);
     })(i);
   }
-  document.getElementById('lowest').textContent = c.bass ? 'Najniższy dźwięk: ' + c.bass.name + ' - ' + c.bass.id + '.' : '';
+  var grip = displayNotes(c);
+  var bass = grip.length ? grip.reduce(function(a,b){return a.midi < b.midi ? a : b;}) : null;
+  document.getElementById('lowest').textContent = bass ? 'Najniższy dźwięk: ' + bass.name + ' - ' + bass.id + '.' : '';
 }
 
 update();
