@@ -11,7 +11,6 @@ A modern, responsive, and interactive web application designed for playing chord
 ## 🌟 Key Features
 
 * **🎹 Interactive Keyboard & Chords:** Play musical notes and chords seamlessly using your computer keyboard, mouse, or touch screen.
-* **🎙️ Live Voice Sampler:** Record your own audio/voice via microphone and map it across the musical keyboard (pitch-shifting).
 * **🔊 Sound Synthesis:** Real-time audio generation powered by the native browser Web Audio API.
 * **📱 Fully Responsive:** Optimized for both desktop displays and mobile touch screens.
 * **⚡ Zero Dependencies:** Lightweight, fast, and runs directly in any modern web browser without additional plugins.
