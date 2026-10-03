@@ -151,7 +151,7 @@ var DEGS = [
   {id:'seksta', title:'Seksta', steps:5, keyTone:false,
    opts:[{semis:9,label:'Wielka',kind:'maj'},{semis:8,label:'Mała',kind:'min'}]},
   {id:'septyma', title:'Septyma', steps:6, keyTone:true,
-   opts:[{semis:11,label:'Wielka',kind:'maj'},{semis:10,label:'Mała',kind:'min'}]},
+   opts:[{semis:11,label:'Wielka',kind:'maj'},{semis:10,label:'Mała',kind:'min'},{semis:9,label:'Zmniejszona',kind:'dim'}]},
   {id:'nona', title:'Nona', steps:8, keyTone:false,
    opts:[{semis:14,label:'Wielka',kind:'maj'},{semis:13,label:'Mała',kind:'min'}]}
 ];
@@ -169,8 +169,16 @@ function clone(o){ return JSON.parse(JSON.stringify(o)); }
 function accStr(a){ return a > 0 ? '♯'.repeat(a) : (a < 0 ? '♭'.repeat(-a) : ''); }
 function degOf(id){ return DEGS.filter(function(d){ return d.id === id; })[0]; }
 
+function diminishedTriad(){
+  return st.on.tercja && st.idx.tercja === 1 && st.on.kwinta && st.idx.kwinta === 2;
+}
+function optionCount(d){
+  return d.id === 'septyma' && !diminishedTriad() ? 2 : d.opts.length;
+}
+
 /* ---------- zasady wyboru dźwięków ---------- */
 function normalize(changed){
+  if(st.idx.septyma === 2 && !diminishedTriad()) st.idx.septyma = 1;
   if(changed === 'nona' && !st.on.nona) st.prima = true;
   /* add9 zachowuje prymę; nona w akordzie z sekstą lub septymą ją pomija. */
   var addNine = st.on.tercja && st.on.kwinta && !st.on.seksta && !st.on.septyma;
@@ -234,10 +242,16 @@ function chordSymbol(c){
   if(f === 'dim'){ if(t === 'min' && noExt) q = 'dim'; else alt = '♭5'; }
   if(f === 'aug'){ if(t === 'maj' && noExt) q = 'aug'; else alt = '♯5'; }
 
-  if(s7){
+  if(s7 === 'dim'){
+    q = 'dim'; ext = '7'; alt = '';
+    if(s9) extra.push(s9 === 'maj' ? 'add9' : 'add♭9');
+  }else if(s7){
     if(s9){ ext = (s7 === 'maj' ? 'maj' : '') + (s9 === 'maj' ? '9' : '7'); if(s9 === 'min') extra.push('♭9'); }
     else ext = s7 === 'maj' ? 'maj7' : '7';
     if(s6) extra.push('add6');
+  } else if(s6 === 'min'){
+    extra.push('add♭6');
+    if(s9) extra.push(s9 === 'maj' ? 'add9' : 'add♭9');
   } else if(s6 && s9){
     if(s9 === 'maj') ext = '6/9'; else { ext = '6'; extra.push('add♭9'); }
   } else if(s6) ext = '6';
@@ -248,7 +262,8 @@ function chordSymbol(c){
     if(!t) extra.push('bez 3');
     if(!f && t) extra.push('bez 5');
   }
-  var sup = ext + alt + (extra.length ? '(' + extra.join(', ') + ')' : '');
+  if(alt) extra.unshift(alt);
+  var sup = ext + (extra.length ? '(' + extra.join(', ') + ')' : '');
   var html = c.rootName + q + (sup ? '<sup>' + sup + '</sup>' : '');
   return html;
 }
@@ -361,15 +376,16 @@ DEGS.forEach(function(d){
     '<h3>' + d.title + '</h3><div class="val"></div>' +
     '<div class="sw" tabindex="0" role="slider" aria-label="' + d.title + '"><div class="slot"></div><div class="knob"></div></div>' +
     '<button class="onoff" aria-label="' + d.title + ' włącz/wyłącz"><i></i><span></span></button>';
-  var sw = p.querySelector('.sw'), n = d.opts.length;
+  var sw = p.querySelector('.sw');
   sw.addEventListener('click', function(e){
+    var n = optionCount(d);
     var r = sw.getBoundingClientRect();
     st.idx[d.id] = Math.max(0, Math.min(n - 1, Math.floor((e.clientY - r.top) / r.height * n)));
     st.on[d.id] = true;
     update(d.id);
   });
   sw.addEventListener('keydown', function(e){
-    var i = st.idx[d.id];
+    var n = optionCount(d), i = st.idx[d.id];
     if(e.key === 'ArrowUp' || e.key === 'ArrowLeft') i--;
     else if(e.key === 'ArrowDown' || e.key === 'ArrowRight') i++;
     else if(e.key === ' ' || e.key === 'Enter') i = (i + 1) % n;
@@ -416,7 +432,7 @@ function update(changed){
   document.getElementById('sharpBtn').classList.toggle('sel', st.acc === 1);
 
   panelsEl.querySelectorAll('.panel').forEach(function(p){
-    var d = degOf(p.dataset.id), i = st.idx[d.id], n = d.opts.length, on = st.on[d.id];
+    var d = degOf(p.dataset.id), i = st.idx[d.id], n = optionCount(d), on = st.on[d.id];
     p.classList.toggle('off', !on);
     p.querySelector('.val').textContent = d.opts[i].label;
     var sw = p.querySelector('.sw');
