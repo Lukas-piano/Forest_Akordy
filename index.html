@@ -130,6 +130,9 @@ h1{margin:2px 0 12px;color:#fff3da;font-size:21px;font-weight:700}
 .key .lbl{position:absolute;left:4px;bottom:4px;font-size:8px;opacity:.55}
 .key.w .dot{bottom:22%}.key.b .dot{bottom:10%;width:100%}
 @media(max-width:520px){.piano{height:110px}.chord-head{grid-template-columns:72px minmax(0,1fr) 72px;gap:3px}#chordName{font-size:26px}.instrument-button{width:34px;height:36px;padding:4px}.instrument-button svg{width:24px}}
+.drop-button{display:block;width:100%;margin-top:10px;font-size:14px;padding:9px}
+.drop-button:disabled{opacity:.45;cursor:not-allowed}
+.drop-help{font-size:11px;margin-top:6px;color:#4d5560;line-height:1.4}
 </style>
 </head>
 <body>
@@ -178,6 +181,8 @@ h1{margin:2px 0 12px;color:#fff3da;font-size:21px;font-weight:700}
   <section class="card inv" aria-label="Przewrót">
     <div class="title">Przewrót</div>
     <div class="invs" id="invs"></div>
+    <button type="button" class="btn drop-button" id="drop2Btn" aria-pressed="false" title="Obniż drugi dźwięk od góry o oktawę">Drop 2</button>
+    <div class="drop-help" id="drop2Help"></div>
     <div id="lowest"></div>
   </section>
 </div>
@@ -208,7 +213,7 @@ var DEGS = [
 var KINDS = ['Dźwięk','Dwudźwięk','Trójdźwięk','Czterodźwięk','Pięciodźwięk','Sześciodźwięk'];
 
 var DEFAULT = {
-  root:0, acc:0, prima:true, inv:0,
+  root:0, acc:0, prima:true, inv:0, drop2:false,
   on:{tercja:true,kwinta:true,seksta:false,septyma:false,nona:false},
   idx:{tercja:0,kwinta:1,seksta:0,septyma:1,nona:1}
 };
@@ -272,14 +277,22 @@ function compute(){
   notes.sort(function(a,b){ return a.semis - b.semis; });
   st.inv = Math.max(0, Math.min(st.inv, Math.max(0, notes.length - 1)));
   notes.forEach(function(n,i){ n.midi = rootMidi + n.semis + (i < st.inv ? 12 : 0); });
+  var dropApplied = st.drop2 && notes.length >= 3;
+  if(dropApplied){
+    /* Układ skupiony aktualnego przewrotu; głosy liczymy od góry. */
+    var floor = Math.min.apply(null,notes.map(function(n){return n.midi;}));
+    notes.forEach(function(n){n.midi = floor + ((n.midi-floor)%12);});
+    var voices = notes.slice().sort(function(a,b){return a.midi-b.midi;});
+    voices[voices.length-2].midi -= 12;
+  }
   /* jeśli akord wychodzi poza klawiaturę – obniż o oktawę */
   if(notes.length){
     var mx = Math.max.apply(null, notes.map(function(n){ return n.midi; }));
     var mn = Math.min.apply(null, notes.map(function(n){ return n.midi; }));
-    while(mx > HIGH && mn - 12 >= LOW){ notes.forEach(function(n){ n.midi -= 12; }); mx -= 12; mn -= 12; }
+    while(mx > HIGH && mn - 12 >= (dropApplied ? 36 : LOW)){ notes.forEach(function(n){ n.midi -= 12; }); mx -= 12; mn -= 12; }
   }
   var bass = notes.length ? notes.reduce(function(a,b){ return b.midi < a.midi ? b : a; }) : null;
-  return {notes:notes, bass:bass, rootName:LET[st.root] + accStr(st.acc)};
+  return {notes:notes, bass:bass, dropApplied:dropApplied, rootName:LET[st.root] + accStr(st.acc)};
 }
 
 function kindOf(id){ return st.on[id] ? degOf(id).opts[st.idx[id]].kind : null; }
@@ -320,12 +333,14 @@ function chordSymbol(c){
 
 /* ---------- wybór instrumentu i klawiatura ---------- */
 var instrument = 'piano';
-var piano = document.getElementById('piano'), keyEls = {};
-(function(){
+var piano = document.getElementById('piano'), keyEls = {}, pianoLow = null;
+function buildPiano(low){
+  if(pianoLow === low)return;
+  pianoLow=low;piano.innerHTML='';keyEls={};
   function isBlack(m){return [1,3,6,8,10].indexOf(m%12)>=0;}
-  var whites=0;for(var m=LOW;m<=HIGH;m++)if(!isBlack(m))whites++;
+  var whites=0;for(var m=low;m<=HIGH;m++)if(!isBlack(m))whites++;
   var w=100/whites,wi=0,blacks=[];
-  for(var m=LOW;m<=HIGH;m++){
+  for(var m=low;m<=HIGH;m++){
     var el=document.createElement('div');el.dataset.midi=m;el.title=SHARP_NAMES[m%12]+(Math.floor(m/12)-1);
     if(!isBlack(m)){
       el.className='key w';el.style.left=(wi*w)+'%';el.style.width=w+'%';
@@ -335,8 +350,10 @@ var piano = document.getElementById('piano'), keyEls = {};
     keyEls[m]=el;
   }
   blacks.forEach(function(b){piano.appendChild(b);});
-})();
+}
 function renderPiano(c){
+  buildPiano(c.dropApplied ? 36 : LOW);
+  piano.setAttribute('aria-label',c.dropApplied ? 'Klawiatura C2–F5' : 'Klawiatura C3–F5');
   piano.querySelectorAll('.dot').forEach(function(dot){dot.remove();});
   c.notes.forEach(function(n){
     var key=keyEls[n.midi];if(!key)return;
@@ -374,11 +391,18 @@ function guitarVoicing(c){
     }
     return list;
   });
+  var target = c.notes.slice().sort(function(a,b){return a.midi-b.midi;});
   var best = null, bestScore = Infinity;
   function search(string, used, grip){
     if(grip.length === c.notes.length){
       var bass = grip.reduce(function(a,b){ return a.midi < b.midi ? a : b; });
       if(bass.midi % 12 !== bassPitch) return;
+      if(c.dropApplied){
+        var ordered = grip.slice().sort(function(a,b){return a.midi-b.midi;});
+        for(var i=0;i<target.length;i++){
+          if(ordered[i].id!==target[i].id || ordered[i].midi-ordered[0].midi!==target[i].midi-target[0].midi)return;
+        }
+      }
       var pressed = grip.filter(function(n){ return n.fret > 0; }).map(function(n){ return n.fret; });
       var low = pressed.length ? Math.min.apply(null,pressed) : 0;
       var high = pressed.length ? Math.max.apply(null,pressed) : 0;
@@ -423,7 +447,7 @@ function renderGuitar(c){
   });
   var pressed=grip.filter(function(n){return n.fret>0;}).map(function(n){return n.fret;});
   var span=pressed.length ? Math.max.apply(null,pressed)-Math.min.apply(null,pressed) : 0;
-  document.getElementById('guitarNote').textContent='0 = pusta struna · × = struna pomijana. Kółka wskazują jeden układ akordu.'+(span>3?' Ten układ wymaga dużego rozstawu palców.':'');
+  document.getElementById('guitarNote').textContent=(c.notes.length && !grip.length ? 'Brak układu tego voicingu w zakresie 0–12. Wybierz inny przewrót lub klawiaturę.' : '0 = pusta struna · × = struna pomijana. Kółka wskazują jeden układ akordu.'+(span>3?' Ten układ wymaga dużego rozstawu palców.':''));
 }
 guitar.addEventListener('click',function(e){
   var fret=e.target.closest('.fret');if(!fret)return;
@@ -486,6 +510,7 @@ document.getElementById('flatBtn').addEventListener('click', function(){ st.acc 
 document.getElementById('sharpBtn').addEventListener('click', function(){ st.acc = st.acc === 1 ? 0 : 1; update(); });
 document.getElementById('primaBtn').addEventListener('click', function(){ st.prima = !st.prima; update('pryma'); });
 document.getElementById('playBtn').addEventListener('click', playChord);
+document.getElementById('drop2Btn').addEventListener('click',function(){st.drop2=!st.drop2;update();});
 
 var panelsEl = document.getElementById('panels');
 DEGS.forEach(function(d){
@@ -544,7 +569,7 @@ function update(changed){
   document.getElementById('guitarNote').hidden=!isGuitar;
   document.getElementById('pianoView').setAttribute('aria-pressed',!isGuitar);
   document.getElementById('guitarView').setAttribute('aria-pressed',isGuitar);
-  document.getElementById('instrumentRange').textContent=isGuitar ? 'Gitara · progi 0–12' : 'C3–F5';
+  document.getElementById('instrumentRange').textContent=isGuitar ? 'Gitara · progi 0–12' : (c.dropApplied ? 'C2–F5' : 'C3–F5');
   if(isGuitar)renderGuitar(c);else renderPiano(c);
   document.getElementById('kind').textContent = KINDS[Math.max(0, c.notes.length - 1)];
 
@@ -580,6 +605,11 @@ function update(changed){
       invs.appendChild(b);
     })(i);
   }
+  var dropButton=document.getElementById('drop2Btn');
+  dropButton.disabled=c.notes.length<3;
+  dropButton.classList.toggle('sel',c.dropApplied);
+  dropButton.setAttribute('aria-pressed',c.dropApplied);
+  document.getElementById('drop2Help').textContent=c.notes.length<3 ? 'Drop 2 wymaga co najmniej trzech dźwięków.' : (c.dropApplied ? 'Drop 2: drugi dźwięk od góry obniżony o oktawę.' : 'Drop 2 obniża drugi dźwięk od góry o oktawę.');
   var grip = displayNotes(c);
   var bass = grip.length ? grip.reduce(function(a,b){return a.midi < b.midi ? a : b;}) : null;
   document.getElementById('lowest').textContent = bass ? 'Najniższy dźwięk: ' + bass.name + ' - ' + bass.id + '.' : '';
