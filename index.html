@@ -159,21 +159,13 @@ var KINDS = ['Dźwięk','Dwudźwięk','Trójdźwięk','Czterodźwięk','Pięciod
 
 var DEFAULT = {
   root:0, acc:0, prima:true, inv:0,
-  on:{tercja:true,kwinta:true,seksta:false,septyma:true,nona:false},
+  on:{tercja:true,kwinta:true,seksta:false,septyma:false,nona:false},
   idx:{tercja:0,kwinta:1,seksta:0,septyma:1,nona:1}
 };
-var KEY = 'forest-akordy-v1';
-var st = load();
+/* Każde otwarcie zaczynamy od C-dur z prymą. */
+var st = clone(DEFAULT);
 
 function clone(o){ return JSON.parse(JSON.stringify(o)); }
-function load(){
-  try{
-    var s = JSON.parse(localStorage.getItem(KEY));
-    if(s && s.on && s.idx) return Object.assign(clone(DEFAULT), s);
-  }catch(e){}
-  return clone(DEFAULT);
-}
-function save(){ try{ localStorage.setItem(KEY, JSON.stringify(st)); }catch(e){} }
 function accStr(a){ return a > 0 ? '♯'.repeat(a) : (a < 0 ? '♭'.repeat(-a) : ''); }
 function degOf(id){ return DEGS.filter(function(d){ return d.id === id; })[0]; }
 
@@ -396,7 +388,6 @@ DEGS.forEach(function(d){
 function update(changed){
   normalize(changed);
   var c = compute();
-  save();
 
   document.getElementById('chordName').innerHTML = c.notes.length ? chordSymbol(c) : '—';
   document.getElementById('primaBtn').textContent = st.prima ? 'Z prymą' : 'Bez prymy';
