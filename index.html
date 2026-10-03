@@ -250,7 +250,6 @@ function chordSymbol(c){
   }
   var sup = ext + alt + (extra.length ? '(' + extra.join(', ') + ')' : '');
   var html = c.rootName + q + (sup ? '<sup>' + sup + '</sup>' : '');
-  if(st.inv > 0 && c.bass) html += '/' + c.bass.name;
   return html;
 }
 
