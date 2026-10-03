@@ -197,10 +197,7 @@ function optionCount(d){
 function normalize(changed){
   if(st.idx.septyma === 2 && !diminishedTriad()) st.idx.septyma = 1;
   if(changed === 'nona' && !st.on.nona) st.prima = true;
-  /* add9 zachowuje prymę; nona w akordzie z sekstą lub septymą ją pomija. */
-  var addNine = st.on.tercja && st.on.kwinta && !st.on.seksta && !st.on.septyma;
-  if(st.on.nona) st.prima = addNine;
-  var dominantSix = st.on.nona && !st.prima &&
+  var dominantSix = st.on.nona &&
     st.on.tercja && st.idx.tercja === 0 &&
     st.idx.seksta === 0 && st.idx.septyma === 1;
   if(st.on.seksta && st.on.septyma){
@@ -214,6 +211,9 @@ function normalize(changed){
       else st.on.seksta = false;
     }
   }
+  /* Nona może współistnieć z prymą, dopóki cały układ ma do czterech dźwięków. */
+  var count = (st.prima ? 1 : 0) + DEGS.filter(function(d){ return st.on[d.id]; }).length;
+  if(st.on.nona && count > 4) st.prima = false;
 }
 
 /* ---------- teoria ---------- */
