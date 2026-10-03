@@ -24,7 +24,7 @@ body{background:var(--bg);color:var(--ink);font-family:"Segoe UI",system-ui,-app
 .app{max-width:680px;margin:0 auto;padding:0 12px}
 .eyebrow{color:#f3e6cc;font-size:11px;letter-spacing:.08em;text-transform:uppercase}
 h1{margin:2px 0 12px;color:#fff3da;font-size:21px;font-weight:700}
-.card{background:var(--card);border:1px solid var(--card-b);border-radius:12px;padding:12px}
+.card{background:var(--slate);border:1px solid var(--slate-b);border-radius:12px;padding:12px}
 .card+.card{margin-top:12px}
 .chord-head{display:flex;justify-content:space-between;align-items:flex-start}
 #chordName{font-size:30px;font-weight:700;line-height:1.1;margin:2px 0 8px;min-height:34px}
@@ -51,9 +51,9 @@ h1{margin:2px 0 12px;color:#fff3da;font-size:21px;font-weight:700}
 .key.w.press{background:#e9dcb9}
 .key.b.press{background:#444}
 .key .lbl{position:absolute;left:4px;bottom:4px;font-size:8px;opacity:.55}
-.dot{position:absolute;left:50%;width:14px;height:14px;margin-left:-7px;border-radius:50%;background:var(--accent);border:2px solid #cfe5ff;box-shadow:0 0 6px rgba(42,139,242,.7);pointer-events:none}
+.dot{position:absolute;left:50%;width:62%;aspect-ratio:1;transform:translateX(-50%);border-radius:50%;display:grid;place-items:center;font-size:clamp(9px,1.5vw,12px);font-weight:800;line-height:1;color:#27313c;background:var(--accent);border:1px solid #cfe5ff;box-shadow:0 1px 4px rgba(0,0,0,.24);pointer-events:none}
 .key.w .dot{bottom:22%}
-.key.b .dot{bottom:10%}
+.key.b .dot{bottom:10%;width:100%}
 .legend{display:flex;justify-content:space-between;font-size:11px;margin-top:6px}
 .legend i{display:inline-block;width:7px;height:7px;border-radius:50%;background:var(--accent);margin-right:5px}
 .title{text-align:center;font-size:12px;font-weight:700;margin-bottom:8px;letter-spacing:.03em}
@@ -88,17 +88,17 @@ h1{margin:2px 0 12px;color:#fff3da;font-size:21px;font-weight:700}
 /* Jedna pastelowa paleta dla każdego składnika akordu. */
 [data-id="pryma"]{--tone:#e6a0a3;--tone-soft:#f8e3e4;--tone-border:#ca8589}
 [data-id="tercja"]{--tone:#91b9e0;--tone-soft:#e3eef9;--tone-border:#719bc4}
-[data-id="kwinta"]{--tone:#9cc8a4;--tone-soft:#e6f2e8;--tone-border:#7ba584}
+[data-id="kwinta"]{--tone:#a5aec1;--tone-soft:#e4e7ee;--tone-border:#7d889e}
 [data-id="seksta"]{--tone:#e5b38e;--tone-soft:#faecdf;--tone-border:#c49370}
 [data-id="septyma"]{--tone:#bea5dc;--tone-soft:#efe7f8;--tone-border:#9e83bd}
 [data-id="nona"]{--tone:#8ec9c5;--tone-soft:#e1f2f0;--tone-border:#6aa7a3}
-.cell[data-id],.panel[data-id],.card[data-id="pryma"]{background:var(--tone-soft);border-color:var(--tone-border)}
+.cell[data-id],.panel[data-id]{background:var(--tone-soft);border-color:var(--tone-border)}
 .cell[data-id].bass{border:2px solid var(--tone-border);padding:5px 1px}
 .cell[data-id].sound{background:var(--tone);border-color:var(--tone-border);box-shadow:0 0 0 2px var(--tone-soft)}
 .dot[data-id]{background:var(--tone);border-color:var(--tone-border);box-shadow:0 1px 4px rgba(0,0,0,.24)}
 .panel[data-id] .onoff.on i{background:radial-gradient(circle at 35% 30%,#fff,var(--tone) 55%,var(--tone-border));box-shadow:0 0 7px var(--tone)}
-.card[data-id="pryma"] .btn{background:#fff6f6;border-color:var(--tone-border)}
-.card[data-id="pryma"] .btn.sel{background:var(--tone);color:var(--ink)}
+.card[data-id="pryma"] .btn{background:#eceff1;border-color:var(--slate-b)}
+.card[data-id="pryma"] .btn.sel{background:var(--dark);border-color:var(--dark);color:#fff}
 #primaBtn{padding:4px 7px;border-radius:5px;background:var(--tone-soft);border:1px solid var(--tone-border)}
 .legend i{background:#909aa2}
 @media (max-width:520px){
@@ -157,6 +157,7 @@ var LET = ['C','D','E','F','G','A','H'];
 var SEM = [0,2,4,5,7,9,11];
 var SHARP_NAMES = ['C','C♯','D','D♯','E','F','F♯','G','G♯','A','A♯','H'];
 var ROMAN = ['0','I','II','III','IV','V'];
+var INTERVAL_NUMBERS = {pryma:1,tercja:3,kwinta:5,seksta:6,septyma:7,nona:9};
 var LOW = 48, HIGH = 77; /* C3 … F5, C4 = 60 */
 
 var DEGS = [
@@ -439,7 +440,7 @@ function update(changed){
   piano.querySelectorAll('.dot').forEach(function(x){ x.remove(); });
   c.notes.forEach(function(n){
     var k = keyEls[n.midi];
-    if(k){ var dot = document.createElement('div'); dot.className = 'dot'; dot.dataset.id = n.id; k.appendChild(dot); }
+    if(k){ var dot = document.createElement('div'); dot.className = 'dot'; dot.dataset.id = n.id; dot.textContent = INTERVAL_NUMBERS[n.id]; k.appendChild(dot); }
   });
   document.getElementById('kind').textContent = KINDS[Math.max(0, c.notes.length - 1)];
 
