@@ -179,24 +179,22 @@ function degOf(id){ return DEGS.filter(function(d){ return d.id === id; })[0]; }
 
 /* ---------- zasady wyboru dźwięków ---------- */
 function normalize(changed){
-  var dominantSix = st.on.tercja && st.idx.tercja === 0 &&
+  /* Każdy akord z noną jest układem bez prymy. */
+  if(st.on.nona) st.prima = false;
+  var dominantSix = st.on.nona && !st.prima &&
+    st.on.tercja && st.idx.tercja === 0 &&
     st.idx.seksta === 0 && st.idx.septyma === 1;
   if(st.on.seksta && st.on.septyma){
     if(dominantSix){
+      /* Dopiero tutaj seksta zastępuje kwintę, zachowując septymę. */
       if(changed === 'kwinta' && st.on.kwinta) st.on.seksta = false;
       else st.on.kwinta = false;
     }else{
+      /* Bez tego wyjątku seksta i septyma zastępują się wzajemnie. */
       if(changed === 'seksta') st.on.septyma = false;
       else st.on.seksta = false;
     }
   }
-  function count(){
-    return (st.prima ? 1 : 0) + DEGS.filter(function(d){ return st.on[d.id]; }).length;
-  }
-  /* Nowy wybór ma pierwszeństwo; przy rozszerzeniach najpierw pomijamy kwintę. */
-  ['kwinta','nona','seksta','septyma','tercja'].forEach(function(id){
-    if(count() > 4 && id !== changed) st.on[id] = false;
-  });
 }
 
 /* ---------- teoria ---------- */
