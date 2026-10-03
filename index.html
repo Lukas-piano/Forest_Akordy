@@ -258,7 +258,7 @@ function normalize(changed){
 function compute(){
   normalize();
   var base = LOW + SEM[st.root] + st.acc;
-  var rootMidi = st.root === 5 ? base : base + 12; /* Akordy od A zaczynają w A3. */
+  var rootMidi = st.root >= 5 ? base : base + 12; /* Akordy od A i H zaczynają w A3 i H3. */
   var notes = [];
   function mk(id, steps, semis){
     var li = (st.root + steps) % 7;
