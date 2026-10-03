@@ -172,8 +172,9 @@ function degOf(id){ return DEGS.filter(function(d){ return d.id === id; })[0]; }
 /* ---------- zasady wyboru dźwięków ---------- */
 function normalize(changed){
   if(changed === 'nona' && !st.on.nona) st.prima = true;
-  /* Każdy akord z noną jest układem bez prymy. */
-  if(st.on.nona) st.prima = false;
+  /* add9 zachowuje prymę; nona w akordzie z sekstą lub septymą ją pomija. */
+  var addNine = st.on.tercja && st.on.kwinta && !st.on.seksta && !st.on.septyma;
+  if(st.on.nona) st.prima = addNine;
   var dominantSix = st.on.nona && !st.prima &&
     st.on.tercja && st.idx.tercja === 0 &&
     st.idx.seksta === 0 && st.idx.septyma === 1;
