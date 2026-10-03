@@ -177,8 +177,31 @@ function save(){ try{ localStorage.setItem(KEY, JSON.stringify(st)); }catch(e){}
 function accStr(a){ return a > 0 ? '♯'.repeat(a) : (a < 0 ? '♭'.repeat(-a) : ''); }
 function degOf(id){ return DEGS.filter(function(d){ return d.id === id; })[0]; }
 
+/* ---------- zasady wyboru dźwięków ---------- */
+function normalize(changed){
+  var dominantSix = st.on.tercja && st.idx.tercja === 0 &&
+    st.idx.seksta === 0 && st.idx.septyma === 1;
+  if(st.on.seksta && st.on.septyma){
+    if(dominantSix){
+      if(changed === 'kwinta' && st.on.kwinta) st.on.seksta = false;
+      else st.on.kwinta = false;
+    }else{
+      if(changed === 'seksta') st.on.septyma = false;
+      else st.on.seksta = false;
+    }
+  }
+  function count(){
+    return (st.prima ? 1 : 0) + DEGS.filter(function(d){ return st.on[d.id]; }).length;
+  }
+  /* Nowy wybór ma pierwszeństwo; przy rozszerzeniach najpierw pomijamy kwintę. */
+  ['kwinta','nona','seksta','septyma','tercja'].forEach(function(id){
+    if(count() > 4 && id !== changed) st.on[id] = false;
+  });
+}
+
 /* ---------- teoria ---------- */
 function compute(){
+  normalize();
   var base = LOW + SEM[st.root] + st.acc;
   var rootMidi = base < LOW ? base + 12 : base;
   var notes = [];
@@ -192,6 +215,11 @@ function compute(){
   if(st.prima) mk('pryma', 0, 0);
   DEGS.forEach(function(d){ if(st.on[d.id]) mk(d.id, d.steps, d.opts[st.idx[d.id]].semis); });
 
+  /* add9: nona brzmi jako sekunda między prymą a tercją. */
+  if(st.on.tercja && st.on.kwinta && !st.on.seksta && !st.on.septyma && st.on.nona){
+    notes.forEach(function(n){ if(n.id === 'nona') n.semis -= 12; });
+  }
+  notes.sort(function(a,b){ return a.semis - b.semis; });
   st.inv = Math.max(0, Math.min(st.inv, Math.max(0, notes.length - 1)));
   notes.forEach(function(n,i){ n.midi = rootMidi + n.semis + (i < st.inv ? 12 : 0); });
   /* jeśli akord wychodzi poza klawiaturę – obniż o oktawę */
@@ -331,7 +359,7 @@ LET.forEach(function(l,i){
 });
 document.getElementById('flatBtn').addEventListener('click', function(){ st.acc = st.acc === -1 ? 0 : -1; update(); });
 document.getElementById('sharpBtn').addEventListener('click', function(){ st.acc = st.acc === 1 ? 0 : 1; update(); });
-document.getElementById('primaBtn').addEventListener('click', function(){ st.prima = !st.prima; update(); });
+document.getElementById('primaBtn').addEventListener('click', function(){ st.prima = !st.prima; update('pryma'); });
 document.getElementById('playBtn').addEventListener('click', playChord);
 
 var panelsEl = document.getElementById('panels');
@@ -348,7 +376,7 @@ DEGS.forEach(function(d){
     var r = sw.getBoundingClientRect();
     st.idx[d.id] = Math.max(0, Math.min(n - 1, Math.floor((e.clientY - r.top) / r.height * n)));
     st.on[d.id] = true;
-    update();
+    update(d.id);
   });
   sw.addEventListener('keydown', function(e){
     var i = st.idx[d.id];
@@ -359,15 +387,16 @@ DEGS.forEach(function(d){
     e.preventDefault();
     st.idx[d.id] = Math.max(0, Math.min(n - 1, i));
     st.on[d.id] = true;
-    update();
+    update(d.id);
     p.querySelector('.sw').focus();
   });
-  p.querySelector('.onoff').addEventListener('click', function(){ st.on[d.id] = !st.on[d.id]; update(); });
+  p.querySelector('.onoff').addEventListener('click', function(){ st.on[d.id] = !st.on[d.id]; update(d.id); });
   panelsEl.appendChild(p);
 });
 
 /* ---------- odświeżanie ---------- */
-function update(){
+function update(changed){
+  normalize(changed);
   var c = compute();
   save();
 
