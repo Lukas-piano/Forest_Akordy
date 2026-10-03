@@ -394,10 +394,9 @@ DEGS.forEach(function(d){
     '<div class="sw" tabindex="0" role="slider" aria-label="' + d.title + '"><div class="slot"></div><div class="knob"></div></div>' +
     '<button class="onoff" aria-label="' + d.title + ' włącz/wyłącz"><i></i><span></span></button>';
   var sw = p.querySelector('.sw');
-  sw.addEventListener('click', function(e){
+  sw.addEventListener('click', function(){
     var n = optionCount(d);
-    var r = sw.getBoundingClientRect();
-    st.idx[d.id] = Math.max(0, Math.min(n - 1, Math.floor((e.clientY - r.top) / r.height * n)));
+    st.idx[d.id] = (st.idx[d.id] + 1) % n;
     st.on[d.id] = true;
     update(d.id);
   });
