@@ -179,6 +179,7 @@ function degOf(id){ return DEGS.filter(function(d){ return d.id === id; })[0]; }
 
 /* ---------- zasady wyboru dźwięków ---------- */
 function normalize(changed){
+  if(changed === 'nona' && !st.on.nona) st.prima = true;
   /* Każdy akord z noną jest układem bez prymy. */
   if(st.on.nona) st.prima = false;
   var dominantSix = st.on.nona && !st.prima &&
@@ -257,7 +258,6 @@ function chordSymbol(c){
   var sup = ext + alt + (extra.length ? '(' + extra.join(', ') + ')' : '');
   var html = c.rootName + q + (sup ? '<sup>' + sup + '</sup>' : '');
   if(st.inv > 0 && c.bass) html += '/' + c.bass.name;
-  if(!st.prima) html += '<small>bez prymy</small>';
   return html;
 }
 
