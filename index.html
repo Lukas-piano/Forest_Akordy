@@ -258,7 +258,7 @@ function normalize(changed){
 function compute(){
   normalize();
   var base = LOW + SEM[st.root] + st.acc;
-  var rootMidi = base < LOW ? base + 12 : base;
+  var rootMidi = (base < LOW ? base + 12 : base) + 12;
   var notes = [];
   function mk(id, steps, semis){
     var li = (st.root + steps) % 7;
@@ -277,6 +277,8 @@ function compute(){
   notes.sort(function(a,b){ return a.semis - b.semis; });
   st.inv = Math.max(0, Math.min(st.inv, Math.max(0, notes.length - 1)));
   notes.forEach(function(n,i){ n.midi = rootMidi + n.semis + (i < st.inv ? 12 : 0); });
+  var originalMidis=notes.map(function(n){return n.midi;});
+  var dropUnavailable=false;
   var dropApplied = st.drop2 && notes.length >= 3;
   if(dropApplied){
     /* Układ skupiony aktualnego przewrotu; głosy liczymy od góry. */
@@ -289,10 +291,18 @@ function compute(){
   if(notes.length){
     var mx = Math.max.apply(null, notes.map(function(n){ return n.midi; }));
     var mn = Math.min.apply(null, notes.map(function(n){ return n.midi; }));
-    while(mx > HIGH && mn - 12 >= (dropApplied ? 36 : LOW)){ notes.forEach(function(n){ n.midi -= 12; }); mx -= 12; mn -= 12; }
+    while(mx > HIGH && mn - 12 >= LOW){ notes.forEach(function(n){ n.midi -= 12; }); mx -= 12; mn -= 12; }
+  }
+  if(dropApplied && notes.some(function(n){return n.midi < LOW || n.midi > HIGH;})){
+    /* Nie chowamy głosów poza stałą klawiaturą w nietypowych szerokich układach. */
+    dropUnavailable=true;dropApplied=false;
+    notes.forEach(function(n,i){n.midi=originalMidis[i];});
+    var max=Math.max.apply(null,notes.map(function(n){return n.midi;}));
+    var min=Math.min.apply(null,notes.map(function(n){return n.midi;}));
+    while(max>HIGH && min-12>=LOW){notes.forEach(function(n){n.midi-=12;});max-=12;min-=12;}
   }
   var bass = notes.length ? notes.reduce(function(a,b){ return b.midi < a.midi ? b : a; }) : null;
-  return {notes:notes, bass:bass, dropApplied:dropApplied, rootName:LET[st.root] + accStr(st.acc)};
+  return {notes:notes, bass:bass, dropApplied:dropApplied, dropUnavailable:dropUnavailable, rootName:LET[st.root] + accStr(st.acc)};
 }
 
 function kindOf(id){ return st.on[id] ? degOf(id).opts[st.idx[id]].kind : null; }
@@ -352,8 +362,8 @@ function buildPiano(low){
   blacks.forEach(function(b){piano.appendChild(b);});
 }
 function renderPiano(c){
-  buildPiano(c.dropApplied ? 36 : LOW);
-  piano.setAttribute('aria-label',c.dropApplied ? 'Klawiatura C2–F5' : 'Klawiatura C3–F5');
+  buildPiano(LOW);
+  piano.setAttribute('aria-label','Klawiatura C3–F5');
   piano.querySelectorAll('.dot').forEach(function(dot){dot.remove();});
   c.notes.forEach(function(n){
     var key=keyEls[n.midi];if(!key)return;
@@ -569,7 +579,7 @@ function update(changed){
   document.getElementById('guitarNote').hidden=!isGuitar;
   document.getElementById('pianoView').setAttribute('aria-pressed',!isGuitar);
   document.getElementById('guitarView').setAttribute('aria-pressed',isGuitar);
-  document.getElementById('instrumentRange').textContent=isGuitar ? 'Gitara · progi 0–12' : (c.dropApplied ? 'C2–F5' : 'C3–F5');
+  document.getElementById('instrumentRange').textContent=isGuitar ? 'Gitara · progi 0–12' : 'C3–F5';
   if(isGuitar)renderGuitar(c);else renderPiano(c);
   document.getElementById('kind').textContent = KINDS[Math.max(0, c.notes.length - 1)];
 
@@ -609,7 +619,7 @@ function update(changed){
   dropButton.disabled=c.notes.length<3;
   dropButton.classList.toggle('sel',c.dropApplied);
   dropButton.setAttribute('aria-pressed',c.dropApplied);
-  document.getElementById('drop2Help').textContent=c.notes.length<3 ? 'Drop 2 wymaga co najmniej trzech dźwięków.' : (c.dropApplied ? 'Drop 2: drugi dźwięk od góry obniżony o oktawę.' : 'Drop 2 obniża drugi dźwięk od góry o oktawę.');
+  document.getElementById('drop2Help').textContent=c.dropUnavailable ? 'Ten układ Drop 2 nie mieści się w zakresie C3–F5. Wybierz inny przewrót.' : c.notes.length<3 ? 'Drop 2 wymaga co najmniej trzech dźwięków.' : (c.dropApplied ? 'Drop 2: drugi dźwięk od góry obniżony o oktawę.' : 'Drop 2 obniża drugi dźwięk od góry o oktawę.');
   var grip = displayNotes(c);
   var bass = grip.length ? grip.reduce(function(a,b){return a.midi < b.midi ? a : b;}) : null;
   document.getElementById('lowest').textContent = bass ? 'Najniższy dźwięk: ' + bass.name + ' - ' + bass.id + '.' : '';
