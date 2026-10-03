@@ -160,10 +160,10 @@ h1{margin:2px 0 12px;color:#fff3da;font-size:21px;font-weight:700}
       <span id="invLabel"></span>
     </div>
     <div class="cells" id="cells"></div>
-    <div class="piano" id="piano" aria-label="Klawiatura C3–F5"></div>
+    <div class="piano" id="piano" aria-label="Klawiatura C3–C6"></div>
     <div class="guitar" id="guitar" hidden aria-label="Gryf gitary, sześć strun, progi od 0 do 12"></div>
     <div class="guitar-note" id="guitarNote" hidden></div>
-    <div class="legend"><span><i></i><span id="kind"></span></span><span id="instrumentRange">C3–F5</span></div>
+    <div class="legend"><span><i></i><span id="kind"></span></span><span id="instrumentRange">C3–C6</span></div>
   </section>
 
   <section class="card" data-id="pryma" aria-label="Pryma">
@@ -196,7 +196,7 @@ var SEM = [0,2,4,5,7,9,11];
 var SHARP_NAMES = ['C','C♯','D','D♯','E','F','F♯','G','G♯','A','A♯','H'];
 var ROMAN = ['0','I','II','III','IV','V'];
 var INTERVAL_NUMBERS = {pryma:1,tercja:3,kwinta:5,seksta:6,septyma:7,nona:9};
-var LOW = 48, HIGH = 77; /* C3 … F5, C4 = 60 */
+var LOW = 48, HIGH = 84; /* C3 … C6: trzy oktawy, C4 = 60 */
 
 var DEGS = [
   {id:'tercja', title:'Tercja', steps:2, keyTone:true,
@@ -258,7 +258,7 @@ function normalize(changed){
 function compute(){
   normalize();
   var base = LOW + SEM[st.root] + st.acc;
-  var rootMidi = (base < LOW ? base + 12 : base) + 12;
+  var rootMidi = st.root === 5 ? base : base + 12; /* Akordy od A zaczynają w A3. */
   var notes = [];
   function mk(id, steps, semis){
     var li = (st.root + steps) % 7;
@@ -291,6 +291,7 @@ function compute(){
   if(notes.length){
     var mx = Math.max.apply(null, notes.map(function(n){ return n.midi; }));
     var mn = Math.min.apply(null, notes.map(function(n){ return n.midi; }));
+    while(mn < LOW && mx + 12 <= HIGH){ notes.forEach(function(n){ n.midi += 12; }); mx += 12; mn += 12; }
     while(mx > HIGH && mn - 12 >= LOW){ notes.forEach(function(n){ n.midi -= 12; }); mx -= 12; mn -= 12; }
   }
   if(dropApplied && notes.some(function(n){return n.midi < LOW || n.midi > HIGH;})){
@@ -363,7 +364,7 @@ function buildPiano(low){
 }
 function renderPiano(c){
   buildPiano(LOW);
-  piano.setAttribute('aria-label','Klawiatura C3–F5');
+  piano.setAttribute('aria-label','Klawiatura C3–C6');
   piano.querySelectorAll('.dot').forEach(function(dot){dot.remove();});
   c.notes.forEach(function(n){
     var key=keyEls[n.midi];if(!key)return;
@@ -579,7 +580,7 @@ function update(changed){
   document.getElementById('guitarNote').hidden=!isGuitar;
   document.getElementById('pianoView').setAttribute('aria-pressed',!isGuitar);
   document.getElementById('guitarView').setAttribute('aria-pressed',isGuitar);
-  document.getElementById('instrumentRange').textContent=isGuitar ? 'Gitara · progi 0–12' : 'C3–F5';
+  document.getElementById('instrumentRange').textContent=isGuitar ? 'Gitara · progi 0–12' : 'C3–C6';
   if(isGuitar)renderGuitar(c);else renderPiano(c);
   document.getElementById('kind').textContent = KINDS[Math.max(0, c.notes.length - 1)];
 
@@ -619,7 +620,7 @@ function update(changed){
   dropButton.disabled=c.notes.length<3;
   dropButton.classList.toggle('sel',c.dropApplied);
   dropButton.setAttribute('aria-pressed',c.dropApplied);
-  document.getElementById('drop2Help').textContent=c.dropUnavailable ? 'Ten układ Drop 2 nie mieści się w zakresie C3–F5. Wybierz inny przewrót.' : c.notes.length<3 ? 'Drop 2 wymaga co najmniej trzech dźwięków.' : (c.dropApplied ? 'Drop 2: drugi dźwięk od góry obniżony o oktawę.' : 'Drop 2 obniża drugi dźwięk od góry o oktawę.');
+  document.getElementById('drop2Help').textContent=c.dropUnavailable ? 'Ten układ Drop 2 nie mieści się w zakresie C3–C6. Wybierz inny przewrót.' : c.notes.length<3 ? 'Drop 2 wymaga co najmniej trzech dźwięków.' : (c.dropApplied ? 'Drop 2: drugi dźwięk od góry obniżony o oktawę.' : 'Drop 2 obniża drugi dźwięk od góry o oktawę.');
   var grip = displayNotes(c);
   var bass = grip.length ? grip.reduce(function(a,b){return a.midi < b.midi ? a : b;}) : null;
   document.getElementById('lowest').textContent = bass ? 'Najniższy dźwięk: ' + bass.name + ' - ' + bass.id + '.' : '';
